@@ -1,0 +1,50 @@
+diff --git a/js/select2.js b/js/select2.js
+index fa35e1b..265133a 100644
+--- a/js/select2.js
++++ b/js/select2.js
+@@ -9,6 +9,13 @@
+     attach: function (context) {
+       $(once('select2-init', '.select2-widget', context)).each(function () {
+         var config = $(this).data('select2-config');
++        // Setting callbacks.
++        if ("callbacks" in config) {
++          $.each(config.callbacks, function (key, value) {
++            config[key] = eval(value);
++          });
++          delete config.callbacks;
++        }
+         config.createTag = function (params) {
+           var term = $.trim(params.term);
+           if (term === '') {
+@@ -25,7 +32,12 @@
+             // Add option value to selection container for sorting.
+             $(container).data('optionValue', option.element.value);
+           }
+-          return option.text;
++          if (option.html) {
++            return option.html;
++          }
++          else {
++            return option.text;
++          }
+         };
+         if (Object.prototype.hasOwnProperty.call(config, 'ajax')) {
+           config.ajax.data = function (params) {
+@@ -65,12 +77,11 @@
+           var $list = $select.next('.select2-container').find('ul.select2-selection__rendered');
+           Sortable.create($list[0], {
+             draggable: 'li:not(.select2-search)',
+-            onEnd: function (event) {
+-              if (event.newIndex != event.oldIndex) {
+-                $($list.find('.select2-selection__choice').get().reverse()).each(function () {
+-                  $select.prepend($select.find('option[value="' + $(this).data('optionValue') + '"]').first());
+-                });
+-              }
++            forceFallback: true,
++            onEnd: function () {
++              $($list.find('.select2-selection__choice').get().reverse()).each(function () {
++                $select.prepend($select.find('option[value="' + $(this).data('optionValue') + '"]').first());
++              });
+             }
+           });
+         }
